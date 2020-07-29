@@ -2,7 +2,6 @@
 
 class Driver extends BaseDriver
 {
-
     public static function getInstance()
     {
         if (self::$_instance === null) {
@@ -29,7 +28,6 @@ class Driver extends BaseDriver
                 TABLE_SCHEMA = '<<BASENAME>>' AND
                 TABLE_TYPE = '{$type}'";
         return $this->_getCompareArray($query, false, true);
-
     }
 
     public function getCompareViews()
@@ -121,5 +119,4 @@ class Driver extends BaseDriver
                     ROUTINE_NAME";
         return $this->_getCompareArray($query, true);
     }
-
 }

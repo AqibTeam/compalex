@@ -49,7 +49,6 @@ abstract class BaseDriver
 
     protected function _getCompareArray($query, $diffMode = false, $ifOneLevelDiff = false)
     {
-
         $out = array();
         $fArray = $this->_prepareOutArray($this->_select($query, $this->_getFirstConnect(), FIRST_BASE_NAME), $diffMode, $ifOneLevelDiff);
         $sArray = $this->_prepareOutArray($this->_select($query, $this->_getSecondConnect(), SECOND_BASE_NAME), $diffMode, $ifOneLevelDiff);
@@ -62,14 +61,18 @@ abstract class BaseDriver
             foreach ($allFields as $f) {
                 switch (true) {
                     case (!isset($fArray[$v][$f])): {
-                        if(is_array($sArray[$v][$f])) $sArray[$v][$f]['isNew'] = true;
+                        if (is_array($sArray[$v][$f])) {
+                            $sArray[$v][$f]['isNew'] = true;
+                        }
                         break;
                     }
                     case (!isset($sArray[$v][$f])): {
-                        if(is_array($fArray[$v][$f])) $fArray[$v][$f]['isNew'] = true;
+                        if (is_array($fArray[$v][$f])) {
+                            $fArray[$v][$f]['isNew'] = true;
+                        }
                         break;
                     }
-                    case (isset($fArray[$v][$f]['dtype']) && isset($sArray[$v][$f]['dtype']) && ($fArray[$v][$f]['dtype'] != $sArray[$v][$f]['dtype'])) : {
+                    case (isset($fArray[$v][$f]['dtype']) && isset($sArray[$v][$f]['dtype']) && ($fArray[$v][$f]['dtype'] != $sArray[$v][$f]['dtype'])): {
                         $fArray[$v][$f]['changeType'] = true;
                         $sArray[$v][$f]['changeType'] = true;
                         break;
@@ -92,11 +95,10 @@ abstract class BaseDriver
                 foreach (explode("\n", $r['ARRAY_KEY_2']) as $pr) {
                     $mArray[$r['ARRAY_KEY_1']][$pr] = $r;
                 }
-
             } else {
-                if($ifOneLevelDiff){
+                if ($ifOneLevelDiff) {
                     $mArray[$r['ARRAY_KEY_1']] = $r;
-                }else{
+                } else {
                     $mArray[$r['ARRAY_KEY_1']][$r['ARRAY_KEY_2']] = $r;
                 }
             }
@@ -146,8 +148,12 @@ abstract class BaseDriver
 
     public function getTableRows($baseName, $tableName, $rowCount = SAMPLE_DATA_LENGTH)
     {
-        if (!$baseName) throw new Exception('$baseName is not set');
-        if (!$tableName) throw new Exception('$tableName is not set');
+        if (!$baseName) {
+            throw new Exception('$baseName is not set');
+        }
+        if (!$tableName) {
+            throw new Exception('$tableName is not set');
+        }
         $rowCount = (int)$rowCount;
         $tableName = preg_replace("$[^A-z0-9.,-_]$", '', $tableName);
         switch (DRIVER) {
@@ -186,6 +192,4 @@ abstract class BaseDriver
 
         return $out;
     }
-
-
 }

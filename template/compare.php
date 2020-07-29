@@ -7,6 +7,12 @@
     <script src="public/js/functional.js"></script>
     <style type="text/css" media="all">
         @import url("public/css/style.css");
+        .changes-detected{
+            background-color: hsl(0deg 100% 50% / 21%) !important;
+        }
+        .ok{
+            background-color: hsl(120deg 100% 25% / 26%);
+        }
     </style>
 </head>
 
@@ -66,10 +72,10 @@
             </td>
         </tr>
     <?php foreach ($tables as $tableName => $data) { ?>
-        <tr class="data">
+        <tr class="data data_<?php echo $tableName?> ok">
             <?php foreach (array('fArray', 'sArray') as $blockType) { ?>
             <td class="type-<?php echo $_REQUEST['action']; ?>">
-                <h3><?php echo $tableName; ?> <sup style="color: red;"><?php echo count($data[$blockType]); ?></sup></h3>
+                <h3><?php echo $tableName; ?> <sup style="color: red;"><?php if(is_array($data[$blockType])){ echo count($data[$blockType]); }?></sup></h3>
                 <div class="table-additional-info">
                     <?php if(isset($additionalTableInfo[$tableName][$blockType])) {
                             foreach ($additionalTableInfo[$tableName][$blockType] as $paramKey => $paramValue) {
@@ -80,21 +86,49 @@
                 </div>
                 <?php if ($data[$blockType]) { ?>
                     <ul>
+                        <?php
+                        $statements = "";
+                        $i = 0;
+                        $len = count($data[$blockType]);
+                        $complete_statement ="";
+                        ?>
                         <?php foreach ($data[$blockType] as $fieldName => $tparam) { ?>
                             <li <?php if (isset($tparam['isNew']) && $tparam['isNew']) {
                                 echo 'style="color: red;" class="new" ';
                             } ?>><b><?php echo $fieldName; ?></b>
+
                                 <span <?php if (isset($tparam['changeType']) && $tparam['changeType']): ?>style="color: red;" class="new" <?php endif;?>>
                                     <?php echo $tparam['dtype']; ?>
                                 </span>
+                                <span><?php if (isset($tparam['isNew']) && $tparam['isNew']) {?>
+                                        <?php
+                                        if($i == $len - 1){
+                                            $statements .='ADD '.$fieldName.' '.$tparam['dtype'].',';
+                                        }else{
+                                            $statements .='ADD '.$fieldName.' '.$tparam['dtype'].','.PHP_EOL;
+                                        }
+                                        ?>(Delete Or Replace)<?php }?></span>
                             </li>
-                        <?php } ?>
+                        <?php
+                            $i++;
+                        } ?>
+                        <?php
+                        if($statements != ""){
+                            $alter = "ALTER TABLE $tableName";
+                            $complete_statement =$alter.PHP_EOL.substr_replace($statements, ";", -1);
+                            $fp = fopen($_SERVER['DOCUMENT_ROOT'] . "/".$tableName.".sql","wb");
+                            fwrite($fp,$complete_statement);
+                            fclose($fp);
+                            echo "<textarea style='width: 100%; height: 50px'>".$complete_statement."</textarea>";
+                            echo "<script>$('.data_$tableName').addClass('changes-detected');</script>";
+                        }
+                        ?>
                     </ul>
                 <?php } ?>
-                <?php if (count($data[$blockType]) && in_array($_REQUEST['action'], array('tables', 'views'))) { ?><a
+                <?php if (is_array($data[$blockType]) && count($data[$blockType]) && in_array($_REQUEST['action'], array('tables', 'views'))) { ?><a
                     target="_blank"
                     onclick="Data.getTableData('index.php?action=rows&baseName=<?php echo $basesName[$blockType]; ?>&tableName=<?php echo $tableName; ?>'); return false;"
-                    href="#" class="sample-data">Sample data (<?php echo SAMPLE_DATA_LENGTH; ?> rows)</a><?php } ?>
+                    href="#" class="sample-data">Sample data (<?php echo SAMPLE_DATA_LENGTH; ?> rows)</a><?php } else{echo "<br><strong>DROP TABLE ".$tableName."; <br><strong>";} ?>
             </td>
             <?php } ?>
         </tr>
